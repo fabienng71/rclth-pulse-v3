@@ -50,13 +50,15 @@ export default defineConfig(({ mode }) => ({
     },
   },
   optimizeDeps: {
-    include: [
+    exclude: [
       '@tiptap/core',
       '@tiptap/react',
       '@tiptap/starter-kit',
       '@tiptap/extension-text-style',
       '@tiptap/extension-font-family',
-      '@tiptap/extension-bubble-menu',
+      '@tiptap/extension-bubble-menu'
+    ],
+    include: [
       'prosemirror-state',
       'prosemirror-view',
       'prosemirror-model',
