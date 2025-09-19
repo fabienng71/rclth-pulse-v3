@@ -7,22 +7,22 @@ import ProtectedRoute from '../components/ProtectedRoute';
 
 const DashboardRoutes = (
   <>
-    {/* Enhanced Dashboard - Now the default */}
+    {/* Original Dashboard - Now the default */}
     <Route 
       path="/dashboard" 
       element={
         <ProtectedRoute>
-          <EnhancedDashboard />
+          <Dashboard />
         </ProtectedRoute>
       } 
     />
     
-    {/* Original Dashboard - For comparison/fallback */}
+    {/* Enhanced Dashboard - Temporarily disabled due to missing components */}
     <Route 
-      path="/dashboard/original" 
+      path="/dashboard/enhanced" 
       element={
         <ProtectedRoute>
-          <Dashboard />
+          <EnhancedDashboard />
         </ProtectedRoute>
       } 
     />
@@ -30,6 +30,6 @@ const DashboardRoutes = (
 );
 
 // Add logging to help debug route loading issues
-console.log('DashboardRoutes loaded and configured with Enhanced Dashboard as default');
+console.log('DashboardRoutes loaded and configured with Original Dashboard as default');
 
 export default DashboardRoutes;
