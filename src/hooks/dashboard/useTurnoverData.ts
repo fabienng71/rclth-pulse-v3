@@ -55,18 +55,43 @@ export const useTurnoverData = (
     
     // Filter to ensure only months within the selected range are included
     const filteredData = data.filter(item => {
-      const monthDate = parseISO(`${item.month}-01`);
-      return monthDate >= startOfMonth(fromDate) && monthDate <= endOfMonth(toDate);
+      if (!item.month || typeof item.month !== 'string') {
+        console.warn('Invalid month data:', item);
+        return false;
+      }
+      try {
+        const monthDate = parseISO(`${item.month}-01`);
+        if (isNaN(monthDate.getTime())) {
+          console.warn('Invalid month date:', item.month);
+          return false;
+        }
+        return monthDate >= startOfMonth(fromDate) && monthDate <= endOfMonth(toDate);
+      } catch (error) {
+        console.warn('Error parsing month date:', item.month, error);
+        return false;
+      }
     });
     
-    return filteredData.map(item => ({
-      month: item.month,
-      total_turnover: Number(item.total_turnover) || 0,
-      total_cost: Number(item.total_cost) || 0,
-      total_margin: Number(item.total_margin) || 0,
-      margin_percent: Number(item.margin_percent) || 0,
-      display_month: format(parseISO(`${item.month}-01`), 'MMMM yyyy').replace(/^\w/, c => c.toUpperCase())
-    }));
+    return filteredData.map(item => {
+      let displayMonth = item.month;
+      try {
+        const monthDate = parseISO(`${item.month}-01`);
+        if (!isNaN(monthDate.getTime())) {
+          displayMonth = format(monthDate, 'MMMM yyyy').replace(/^\w/, c => c.toUpperCase());
+        }
+      } catch (error) {
+        console.warn('Error formatting display month:', item.month, error);
+      }
+      
+      return {
+        month: item.month,
+        total_turnover: Number(item.total_turnover) || 0,
+        total_cost: Number(item.total_cost) || 0,
+        total_margin: Number(item.total_margin) || 0,
+        margin_percent: Number(item.margin_percent) || 0,
+        display_month: displayMonth
+      };
+    });
   };
 
   const fetchTotalTurnover = async () => {
@@ -129,7 +154,15 @@ export const useTurnoverData = (
       throw new Error('Failed to fetch last transaction date');
     }
     
-    return data?.posting_date ? new Date(data.posting_date) : null;
+    if (!data?.posting_date) return null;
+    
+    try {
+      const date = new Date(data.posting_date);
+      return isNaN(date.getTime()) ? null : date;
+    } catch (error) {
+      console.warn('Error parsing posting_date:', data.posting_date, error);
+      return null;
+    }
   };
 
   const fetchLastSalesDate = async () => {
@@ -162,18 +195,28 @@ export const useTurnoverData = (
     // Make sure we handle the date correctly, regardless of format
     const dateStr = data.posting_date;
     
-    // Log the input date string and the resulting date object for debugging
-    const parsedDate = typeof dateStr === 'string' 
-      ? parseISO(dateStr) 
-      : new Date(dateStr);
-    
-    console.log('Parsed last sales date:', {
-      input: dateStr,
-      parsed: parsedDate,
-      formatted: format(parsedDate, 'yyyy-MM-dd')
-    });
-    
-    return parsedDate;
+    try {
+      // Log the input date string and the resulting date object for debugging
+      const parsedDate = typeof dateStr === 'string' 
+        ? parseISO(dateStr) 
+        : new Date(dateStr);
+      
+      if (isNaN(parsedDate.getTime())) {
+        console.warn('Invalid sales posting_date:', dateStr);
+        return null;
+      }
+      
+      console.log('Parsed last sales date:', {
+        input: dateStr,
+        parsed: parsedDate,
+        formatted: format(parsedDate, 'yyyy-MM-dd')
+      });
+      
+      return parsedDate;
+    } catch (error) {
+      console.warn('Error parsing sales posting_date:', dateStr, error);
+      return null;
+    }
   };
 
   const fetchLastCreditMemoDate = async () => {
@@ -203,9 +246,22 @@ export const useTurnoverData = (
     
     // Ensure correct date parsing for credit memo dates too
     const dateStr = data.posting_date;
-    return typeof dateStr === 'string' 
-      ? parseISO(dateStr) 
-      : new Date(dateStr);
+    
+    try {
+      const parsedDate = typeof dateStr === 'string' 
+        ? parseISO(dateStr) 
+        : new Date(dateStr);
+      
+      if (isNaN(parsedDate.getTime())) {
+        console.warn('Invalid credit memo posting_date:', dateStr);
+        return null;
+      }
+      
+      return parsedDate;
+    } catch (error) {
+      console.warn('Error parsing credit memo posting_date:', dateStr, error);
+      return null;
+    }
   };
 
   const { 
