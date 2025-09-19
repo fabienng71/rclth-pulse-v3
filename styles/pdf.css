@@ -1,0 +1,273 @@
+/* PDF-specific styles to ensure screen-accurate rendering */
+
+[data-pdf-content] {
+  /* Ensure consistent font rendering */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  
+  /* Ensure proper scaling */
+  transform-origin: top left;
+  
+  /* Print-optimized colors */
+  color-adjust: exact;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+[data-pdf-content] * {
+  /* Ensure all text is crisp */
+  font-smooth: always;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+/* Ensure images are high quality in PDF */
+[data-pdf-content] img {
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: crisp-edges;
+  image-rendering: pixelated;
+  max-width: 100%;
+  height: auto;
+}
+
+/* Ensure table borders are visible in PDF */
+[data-pdf-content] table {
+  border-collapse: collapse;
+}
+
+[data-pdf-content] table td,
+[data-pdf-content] table th {
+  border: 1px solid #e5e7eb;
+}
+
+/* Ensure background colors are preserved */
+[data-pdf-content] .bg-white {
+  background-color: #ffffff !important;
+}
+
+[data-pdf-content] .bg-gray-50 {
+  background-color: #f9fafb !important;
+}
+
+[data-pdf-content] .bg-gray-100 {
+  background-color: #f3f4f6 !important;
+}
+
+/* Ensure text colors are PDF-friendly */
+[data-pdf-content] .text-muted-foreground {
+  color: #6b7280 !important;
+}
+
+[data-pdf-content] .text-primary {
+  color: #2563eb !important;
+}
+
+/* Ensure proper spacing and layout */
+[data-pdf-content] .space-y-4 > * + * {
+  margin-top: 1rem;
+}
+
+[data-pdf-content] .space-y-6 > * + * {
+  margin-top: 1.5rem;
+}
+
+[data-pdf-content] .space-y-8 > * + * {
+  margin-top: 2rem;
+}
+
+/* Ensure grid layouts work properly */
+[data-pdf-content] .grid {
+  display: grid;
+}
+
+[data-pdf-content] .grid-cols-1 {
+  grid-template-columns: repeat(1, minmax(0, 1fr));
+}
+
+[data-pdf-content] .grid-cols-2 {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+[data-pdf-content] .md\:grid-cols-2 {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+/* Ensure proper gap spacing */
+[data-pdf-content] .gap-4 {
+  gap: 1rem;
+}
+
+[data-pdf-content] .gap-6 {
+  gap: 1.5rem;
+}
+
+[data-pdf-content] .gap-8 {
+  gap: 2rem;
+}
+
+/* Ensure badges and status indicators are visible */
+[data-pdf-content] .badge {
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+/* Ensure proper margin and padding */
+[data-pdf-content] .mb-4 {
+  margin-bottom: 1rem;
+}
+
+[data-pdf-content] .mb-6 {
+  margin-bottom: 1.5rem;
+}
+
+[data-pdf-content] .mb-8 {
+  margin-bottom: 2rem;
+}
+
+[data-pdf-content] .p-4 {
+  padding: 1rem;
+}
+
+[data-pdf-content] .p-6 {
+  padding: 1.5rem;
+}
+
+[data-pdf-content] .px-4 {
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+
+[data-pdf-content] .py-2 {
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
+}
+
+[data-pdf-content] .py-4 {
+  padding-top: 1rem;
+  padding-bottom: 1rem;
+}
+
+/* Ensure proper font sizes */
+[data-pdf-content] .text-sm {
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+}
+
+[data-pdf-content] .text-base {
+  font-size: 1rem;
+  line-height: 1.5rem;
+}
+
+[data-pdf-content] .text-lg {
+  font-size: 1.125rem;
+  line-height: 1.75rem;
+}
+
+[data-pdf-content] .text-xl {
+  font-size: 1.25rem;
+  line-height: 1.75rem;
+}
+
+[data-pdf-content] .text-2xl {
+  font-size: 1.5rem;
+  line-height: 2rem;
+}
+
+/* Ensure proper font weights */
+[data-pdf-content] .font-medium {
+  font-weight: 500;
+}
+
+[data-pdf-content] .font-semibold {
+  font-weight: 600;
+}
+
+[data-pdf-content] .font-bold {
+  font-weight: 700;
+}
+
+/* Ensure borders are visible */
+[data-pdf-content] .border {
+  border: 1px solid #e5e7eb;
+}
+
+[data-pdf-content] .border-t {
+  border-top: 1px solid #e5e7eb;
+}
+
+[data-pdf-content] .border-b {
+  border-bottom: 1px solid #e5e7eb;
+}
+
+/* Ensure rounded corners are preserved */
+[data-pdf-content] .rounded {
+  border-radius: 0.25rem;
+}
+
+[data-pdf-content] .rounded-lg {
+  border-radius: 0.5rem;
+}
+
+/* Ensure shadows are subtle or removed for PDF */
+[data-pdf-content] .shadow {
+  box-shadow: none;
+}
+
+/* Ensure proper alignment */
+[data-pdf-content] .text-center {
+  text-align: center;
+}
+
+[data-pdf-content] .text-right {
+  text-align: right;
+}
+
+[data-pdf-content] .text-left {
+  text-align: left;
+}
+
+/* Ensure flex layouts work */
+[data-pdf-content] .flex {
+  display: flex;
+}
+
+[data-pdf-content] .justify-between {
+  justify-content: space-between;
+}
+
+[data-pdf-content] .justify-center {
+  justify-content: center;
+}
+
+[data-pdf-content] .justify-start {
+  justify-content: flex-start;
+}
+
+[data-pdf-content] .items-center {
+  align-items: center;
+}
+
+[data-pdf-content] .items-start {
+  align-items: flex-start;
+}
+
+/* Ensure proper width and height constraints */
+[data-pdf-content] .w-full {
+  width: 100%;
+}
+
+[data-pdf-content] .max-w-full {
+  max-width: 100%;
+}
+
+[data-pdf-content] .max-h-20 {
+  max-height: 5rem;
+}
+
+[data-pdf-content] .object-contain {
+  object-fit: contain;
+}

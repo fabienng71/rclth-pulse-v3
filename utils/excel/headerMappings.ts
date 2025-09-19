@@ -1,0 +1,81 @@
+
+// Column mapping from Excel headers to database columns for sales data
+export const SALES_HEADER_MAPPING: Record<string, string> = {
+  "Customer - No.": "customer_code",
+  "Customer - Name": "customer_name",
+  "Customer - Search Name": "search_name",
+  "Customer - Customer Type Code": "customer_type_code",
+  "Customer - Salesperson Code": "salesperson_code",
+  "Document No.": "document_no",
+  "Posting Date": "posting_date",
+  "Item - No.": "item_code",
+  "Description": "description",
+  "Gen. Prod. Posting Group": "posting_group",
+  "Unit of Measure Code": "base_unit_code",
+  "Item - Shelf No.": "item_shelf",
+  "Item - Vendor No.": "item_vendor_code",
+  "Brand Code": "brand_code",
+  "Quantity": "quantity",
+  "Unit Cost": "unit_cost",
+  "Unit Price": "unit_price",
+  "Amount": "amount",
+  "Line Discount %": "line_discount",
+  "Line Discount Amount": "line_discount_amount"
+};
+
+export const CREDIT_MEMO_HEADER_MAPPING: Record<string, string> = {
+  "No.": "document_no",
+  "Credit Memo No.": "document_no",
+  "Tax Document No.": "tax_document_no",
+  "Tax Invoice No.": "tax_document_no",
+  "Sell-to Customer No.": "customer_code",
+  "Customer No.": "customer_code",
+  "Customer Name": "customer_name",
+  "Sell-to Customer Name": "customer_name",
+  "Currency Code": "currency_code",
+  "Due Date": "due_date",
+  "Amount": "amount",
+  "Amount Including VAT": "amount_including_vat",
+  "Amount Including Tax": "amount_including_vat",
+  "Remaining Amount": "remaining_amount",
+  "Paid": "paid",
+  "Cancelled": "cancelled",
+  "Corrective": "corrective",
+  "Tax Invoice Date": "tax_invoice_date",
+  "Location Code": "location_code",
+  "No. Printed": "no_printed",
+  "Posted Tax Document": "posted_tax_document",
+  "Printed Tax Document": "printed_tax_document",
+  "Tax Document Marked": "tax_document_marked",
+  "Posting Date": "posting_date",
+  "Document Date": "posting_date", 
+  "Item No.": "item_code",
+  "Item Code": "item_code",
+  "Salesperson Code": "salesperson_code",
+  "Quantity": "quantity",
+  "Posting Group": "posting_group",
+  "Description": "description",
+  "External Document No.": "tax_document_no"
+};
+
+export const COGS_HEADER_MAPPING: Record<string, string> = {
+  "No.": "item_code",
+  "Description": "description",
+  "Gen. Prod.": "posting_group", 
+  "Product Gr": "product_group_code",
+  "Shelf No.": "shelf_no",
+  "Sales Unit": "base_unit_code",
+  "Unit Cost": "unit_cost",
+  "Unit Price": "unit_price",
+  "Profit %": "profit",
+  "Vendor No": "vendor_code",
+  "Vendor Name": "vendor_name",
+  "Inventory": "inventory",
+  "Purchases": "purchase_lcy",
+  "Purchases C": "purchase_qty",
+  "COGS (LCY)": "cogs_lcy",
+  "Sales (LCY)": "sales_lcy",
+  "Sales (Qty.)": "sales_qty"
+  // Note: MR% is not mapped - cogs_unit will be calculated from cogs_lcy / sales_qty
+  // Note: margin will be calculated from ((sales_lcy - cogs_lcy) / sales_lcy) * 100
+};

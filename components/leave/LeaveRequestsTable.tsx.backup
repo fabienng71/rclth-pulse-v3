@@ -1,0 +1,517 @@
+import React, { useState } from 'react';
+import { format } from 'date-fns';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Textarea } from '@/components/ui/textarea';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { CheckCircle, XCircle, Clock, Search, Filter, Trash2, Eye, Calendar } from 'lucide-react';
+import { LeaveRequest, LeaveRequestFilters, LeaveType, LeaveStatus } from '@/types/leave';
+import { useLeaveManagement } from '@/hooks/useLeaveManagement';
+import { useUserRole } from '@/hooks/useUserRole';
+
+interface LeaveRequestsTableProps {
+  requests: LeaveRequest[];
+  showActions?: boolean;
+  title?: string;
+  description?: string;
+}
+
+export const LeaveRequestsTable: React.FC<LeaveRequestsTableProps> = ({
+  requests,
+  showActions = false,
+  title = 'Leave Requests',
+  description = 'View and manage leave requests'
+}) => {
+  const { approveRequest, denyRequest, deleteRequest, revertApproval, fetchRequests, isSubmitting } = useLeaveManagement();
+  const { role } = useUserRole();
+  const [filters, setFilters] = useState<LeaveRequestFilters>({});
+  const [denialReason, setDenialReason] = useState('');
+  const [selectedRequest, setSelectedRequest] = useState<LeaveRequest | null>(null);
+  const [showDetails, setShowDetails] = useState(false);
+  const [showFilters, setShowFilters] = useState(false);
+
+  const isManager = role === 'admin' || role === 'manager';
+  
+  console.log('=== TABLE DEBUG ===');
+  console.log('Role:', role);
+  console.log('Is manager:', isManager);
+  console.log('Show actions:', showActions);
+  console.log('Requests count:', requests.length);
+  console.log('==================');
+
+  const getStatusColor = (status: LeaveStatus) => {
+    switch (status) {
+      case 'Pending':
+        return 'bg-yellow-100 text-yellow-800';
+      case 'Approved':
+        return 'bg-green-100 text-green-800';
+      case 'Denied':
+        return 'bg-red-100 text-red-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  const getStatusIcon = (status: LeaveStatus) => {
+    switch (status) {
+      case 'Approved':
+        return <CheckCircle className="h-4 w-4" />;
+      case 'Denied':
+        return <XCircle className="h-4 w-4" />;
+      case 'Pending':
+        return <Clock className="h-4 w-4" />;
+      default:
+        return <Clock className="h-4 w-4" />;
+    }
+  };
+
+  const getLeaveTypeColor = (type: LeaveType) => {
+    switch (type) {
+      case 'Annual':
+        return 'bg-blue-100 text-blue-800';
+      case 'Sick Leave':
+        return 'bg-red-100 text-red-800';
+      case 'Business Leave':
+        return 'bg-green-100 text-green-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  const handleApprove = async (request: LeaveRequest) => {
+    console.log('🔄 Approval button clicked');
+    console.log('Request to approve:', request);
+    console.log('User role:', role);
+    console.log('Is manager:', isManager);
+    
+    const result = await approveRequest(request.id);
+    console.log('📨 Approval result:', result);
+    
+    if (result.success) {
+      console.log('✅ Approval successful, refreshing data...');
+      
+      // Refresh the table data
+      fetchRequests();
+      
+      // Trigger global refresh event for other components
+      window.dispatchEvent(new CustomEvent('refreshLeaveData'));
+    } else {
+      console.error('❌ Approval failed:', result.error);
+    }
+  };
+
+  const handleDeny = async (request: LeaveRequest) => {
+    if (!denialReason.trim()) {
+      return;
+    }
+    
+    const result = await denyRequest(request.id, denialReason);
+    if (result.success) {
+      setDenialReason('');
+      setSelectedRequest(null);
+      
+      // Refresh the table data
+      fetchRequests();
+      
+      // Trigger global refresh event for other components
+      window.dispatchEvent(new CustomEvent('refreshLeaveData'));
+    }
+  };
+
+  const handleDelete = async (request: LeaveRequest) => {
+    const result = await deleteRequest(request.id);
+    if (result.success) {
+      // Refresh the table data
+      fetchRequests();
+      
+      // Trigger global refresh event for other components
+      window.dispatchEvent(new CustomEvent('refreshLeaveData'));
+    }
+  };
+
+  const handleRevert = async (request: LeaveRequest) => {
+    console.log('🔄 Revert button clicked');
+    console.log('Request to revert:', request);
+    console.log('User role:', role);
+    console.log('Is manager:', isManager);
+    
+    const result = await revertApproval(request.id);
+    console.log('📨 Revert result:', result);
+    
+    if (result.success) {
+      console.log('✅ Revert successful, refreshing data...');
+      // Refresh the table data
+      fetchRequests();
+      
+      // Trigger global refresh event for other components
+      window.dispatchEvent(new CustomEvent('refreshLeaveData'));
+    }
+  };
+
+  const applyFilters = () => {
+    fetchRequests(filters);
+  };
+
+  const clearFilters = () => {
+    setFilters({});
+    fetchRequests();
+  };
+
+  const canDelete = (request: LeaveRequest) => {
+    return request.status === 'Pending';
+  };
+
+  return (
+    <Card>
+      <CardHeader>
+        <div className="flex items-center justify-between">
+          <div>
+            <CardTitle>{title}</CardTitle>
+            <CardDescription>{description}</CardDescription>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowFilters(!showFilters)}
+            >
+              <Filter className="h-4 w-4 mr-2" />
+              Filters
+            </Button>
+          </div>
+        </div>
+        
+        {showFilters && (
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-4 p-4 bg-muted rounded-lg">
+            <div>
+              <label className="text-sm font-medium">Search</label>
+              <div className="relative">
+                <Search className="h-4 w-4 absolute left-3 top-3 text-muted-foreground" />
+                <Input
+                  placeholder="Search employee..."
+                  value={filters.search || ''}
+                  onChange={(e) => setFilters(prev => ({ ...prev, search: e.target.value }))}
+                  className="pl-10"
+                />
+              </div>
+            </div>
+            
+            <div>
+              <label className="text-sm font-medium">Status</label>
+              <Select value={filters.status || ''} onValueChange={(value) => setFilters(prev => ({ ...prev, status: value as LeaveStatus || undefined }))}>
+                <SelectTrigger>
+                  <SelectValue placeholder="All statuses" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">All statuses</SelectItem>
+                  <SelectItem value="Pending">Pending</SelectItem>
+                  <SelectItem value="Approved">Approved</SelectItem>
+                  <SelectItem value="Denied">Denied</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div>
+              <label className="text-sm font-medium">Leave Type</label>
+              <Select value={filters.leave_type || ''} onValueChange={(value) => setFilters(prev => ({ ...prev, leave_type: value as LeaveType || undefined }))}>
+                <SelectTrigger>
+                  <SelectValue placeholder="All types" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">All types</SelectItem>
+                  <SelectItem value="Annual">Annual</SelectItem>
+                  <SelectItem value="Sick Leave">Sick Leave</SelectItem>
+                  <SelectItem value="Business Leave">Business Leave</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div className="flex items-end gap-2">
+              <Button onClick={applyFilters} size="sm">
+                Apply
+              </Button>
+              <Button onClick={clearFilters} variant="outline" size="sm">
+                Clear
+              </Button>
+            </div>
+          </div>
+        )}
+      </CardHeader>
+      <CardContent>
+        <div className="rounded-md border">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Employee</TableHead>
+                <TableHead>Date Range</TableHead>
+                <TableHead>Type</TableHead>
+                <TableHead>Duration</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Submitted</TableHead>
+                <TableHead>Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {requests.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                    No leave requests found
+                  </TableCell>
+                </TableRow>
+              ) : (
+                requests.map((request) => (
+                  <TableRow key={request.id}>
+                    <TableCell>
+                      <div className="flex flex-col">
+                        <span className="font-medium">{request.user_profile?.full_name || 'Unknown'}</span>
+                        <span className="text-sm text-muted-foreground">{request.user_profile?.email}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <Calendar className="h-4 w-4 text-muted-foreground" />
+                        <div className="flex flex-col">
+                          <span className="text-sm">{format(new Date(request.start_date), 'MMM dd, yyyy')}</span>
+                          <span className="text-sm text-muted-foreground">to {format(new Date(request.end_date), 'MMM dd, yyyy')}</span>
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <Badge className={getLeaveTypeColor(request.leave_type)}>
+                        {request.leave_type}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <span className="font-medium">{request.duration_days}</span> day{request.duration_days !== 1 ? 's' : ''}
+                    </TableCell>
+                    <TableCell>
+                      <Badge className={`${getStatusColor(request.status)} flex items-center gap-1 w-fit`}>
+                        {getStatusIcon(request.status)}
+                        {request.status}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <span className="text-sm text-muted-foreground">
+                        {format(new Date(request.created_at), 'MMM dd, yyyy')}
+                      </span>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => {
+                            setSelectedRequest(request);
+                            setShowDetails(true);
+                          }}
+                        >
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                        
+                        {showActions && isManager && request.status === 'Pending' && (
+                          <>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleApprove(request)}
+                              disabled={isSubmitting}
+                              className="text-green-600 hover:text-green-700"
+                            >
+                              <CheckCircle className="h-4 w-4" />
+                            </Button>
+                            
+                            <Dialog>
+                              <DialogTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="text-red-600 hover:text-red-700"
+                                  onClick={() => setSelectedRequest(request)}
+                                >
+                                  <XCircle className="h-4 w-4" />
+                                </Button>
+                              </DialogTrigger>
+                              <DialogContent>
+                                <DialogHeader>
+                                  <DialogTitle>Deny Leave Request</DialogTitle>
+                                  <DialogDescription>
+                                    Please provide a reason for denying this leave request.
+                                  </DialogDescription>
+                                </DialogHeader>
+                                <div className="space-y-4">
+                                  <Textarea
+                                    placeholder="Enter denial reason..."
+                                    value={denialReason}
+                                    onChange={(e) => setDenialReason(e.target.value)}
+                                    className="min-h-[100px]"
+                                  />
+                                </div>
+                                <DialogFooter>
+                                  <Button variant="outline" onClick={() => setDenialReason('')}>
+                                    Cancel
+                                  </Button>
+                                  <Button
+                                    variant="destructive"
+                                    onClick={() => handleDeny(request)}
+                                    disabled={!denialReason.trim() || isSubmitting}
+                                  >
+                                    {isSubmitting ? 'Denying...' : 'Deny Request'}
+                                  </Button>
+                                </DialogFooter>
+                              </DialogContent>
+                            </Dialog>
+                          </>
+                        )}
+                        
+                        {showActions && isManager && request.status === 'Approved' && (
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="text-orange-600 hover:text-orange-700"
+                              >
+                                <XCircle className="h-4 w-4" />
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Revert Leave Approval</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  This will return the request to pending status and restore {request.duration_days} 
+                                  {' '}{request.leave_type} leave days to {request.user_profile?.full_name}.
+                                  Are you sure you want to revert this approval?
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogAction
+                                  onClick={() => handleRevert(request)}
+                                  className="bg-orange-600 hover:bg-orange-700"
+                                >
+                                  {isSubmitting ? 'Reverting...' : 'Revert Approval'}
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        )}
+                        
+                        {canDelete(request) && (
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="text-red-600 hover:text-red-700"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Delete Leave Request</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  Are you sure you want to delete this leave request? This action cannot be undone.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogAction
+                                  onClick={() => handleDelete(request)}
+                                  className="bg-red-600 hover:bg-red-700"
+                                >
+                                  Delete
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        )}
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </div>
+      </CardContent>
+
+      {/* Details Dialog */}
+      <Dialog open={showDetails} onOpenChange={setShowDetails}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Leave Request Details</DialogTitle>
+          </DialogHeader>
+          {selectedRequest && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm font-medium text-muted-foreground">Employee</label>
+                  <p className="text-sm font-medium">{selectedRequest.user_profile?.full_name}</p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-muted-foreground">Email</label>
+                  <p className="text-sm">{selectedRequest.user_profile?.email}</p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-muted-foreground">Leave Type</label>
+                  <Badge className={getLeaveTypeColor(selectedRequest.leave_type)}>
+                    {selectedRequest.leave_type}
+                  </Badge>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-muted-foreground">Status</label>
+                  <Badge className={getStatusColor(selectedRequest.status)}>
+                    {selectedRequest.status}
+                  </Badge>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-muted-foreground">Start Date</label>
+                  <p className="text-sm">{format(new Date(selectedRequest.start_date), 'MMM dd, yyyy')}</p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-muted-foreground">End Date</label>
+                  <p className="text-sm">{format(new Date(selectedRequest.end_date), 'MMM dd, yyyy')}</p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-muted-foreground">Duration</label>
+                  <p className="text-sm">{selectedRequest.duration_days} business days</p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-muted-foreground">Submitted</label>
+                  <p className="text-sm">{format(new Date(selectedRequest.created_at), 'MMM dd, yyyy HH:mm')}</p>
+                </div>
+              </div>
+              
+              <div>
+                <label className="text-sm font-medium text-muted-foreground">Reason</label>
+                <p className="text-sm mt-1 p-3 bg-muted rounded-md">{selectedRequest.reason}</p>
+              </div>
+
+              {selectedRequest.status === 'Denied' && selectedRequest.denial_reason && (
+                <div>
+                  <label className="text-sm font-medium text-muted-foreground">Denial Reason</label>
+                  <p className="text-sm mt-1 p-3 bg-red-50 text-red-800 rounded-md">{selectedRequest.denial_reason}</p>
+                </div>
+              )}
+
+              {selectedRequest.approver_profile && (
+                <div>
+                  <label className="text-sm font-medium text-muted-foreground">
+                    {selectedRequest.status === 'Approved' ? 'Approved by' : 'Denied by'}
+                  </label>
+                  <p className="text-sm">{selectedRequest.approver_profile.full_name}</p>
+                </div>
+              )}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+    </Card>
+  );
+};

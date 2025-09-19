@@ -1,0 +1,185 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>rcl-pulse</title>
+    <meta name="description" content="Lovable Generated Project" />
+    <meta name="author" content="Lovable" />
+
+    <meta property="og:title" content="Lovable Generated Project" />
+    <meta property="og:description" content="Lovable Generated Project" />
+    <meta property="og:type" content="website" />
+    <meta property="og:image" content="https://lovable.dev/opengraph-image-p98pqg.png" />
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:site" content="@lovable_dev" />
+    <meta name="twitter:image" content="https://lovable.dev/opengraph-image-p98pqg.png" />
+    
+    <script>
+      // Immediate console log to verify JavaScript is running
+      console.log('=== HTML: JavaScript is executing ===');
+      
+      // Track initialization state
+      window.appInitialized = false;
+      window.errorOccurred = false;
+      
+      // Add error handler for unhandled errors
+      window.addEventListener('error', function(e) {
+        console.error('=== HTML: Global error caught ===', e.error, e.filename, e.lineno);
+        window.errorOccurred = true;
+        document.getElementById('error-display').innerHTML = 
+          '<h2>JavaScript Error Detected</h2><p>' + e.error + '</p><p>File: ' + e.filename + ':' + e.lineno + '</p>';
+        document.getElementById('error-display').style.display = 'block';
+      });
+      
+      // Add handler for unhandled promise rejections
+      window.addEventListener('unhandledrejection', function(e) {
+        console.error('=== HTML: Unhandled promise rejection ===', e.reason);
+        window.errorOccurred = true;
+        document.getElementById('error-display').innerHTML = 
+          '<h2>Promise Rejection</h2><p>' + e.reason + '</p>';
+        document.getElementById('error-display').style.display = 'block';
+      });
+      
+      // Function to mark app as initialized
+      window.markAppInitialized = function() {
+        window.appInitialized = true;
+        console.log('=== HTML: App marked as initialized ===');
+      };
+      
+      // Show debug info if app doesn't load
+      window.addEventListener('DOMContentLoaded', function() {
+        console.log('=== HTML: DOM Content Loaded ===');
+        
+        // Maximum timeout for loading - show debug after 10 seconds
+        setTimeout(function() {
+          if (!window.appInitialized && !window.errorOccurred) {
+            console.error('=== HTML: App failed to initialize after 10 seconds ===');
+            document.getElementById('debug-info').style.display = 'block';
+          }
+        }, 10000);
+        
+        // Also show debug info if app doesn't load in 5 seconds
+        setTimeout(function() {
+          if (!window.appInitialized && !window.errorOccurred && document.getElementById('root').innerHTML === '') {
+            console.error('=== HTML: App failed to render after 5 seconds ===');
+            document.getElementById('debug-info').style.display = 'block';
+          }
+        }, 5000);
+      });
+    </script>
+    
+    <style>
+      .debug-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: white;
+        z-index: 10000;
+        padding: 20px;
+        box-sizing: border-box;
+        font-family: Arial, sans-serif;
+        display: none;
+        overflow-y: auto;
+      }
+      
+      .debug-overlay h2 {
+        color: #dc2626;
+        margin-top: 0;
+      }
+      
+      .debug-info {
+        background: #f3f4f6;
+        padding: 15px;
+        border-radius: 5px;
+        margin: 10px 0;
+      }
+      
+      .error-button {
+        padding: 10px 20px;
+        margin: 10px 5px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 14px;
+      }
+      
+      .error-button.primary {
+        background: #3498db;
+        color: white;
+      }
+      
+      .error-button.danger {
+        background: #e74c3c;
+        color: white;
+      }
+      
+      .error-button.warning {
+        background: #f39c12;
+        color: white;
+      }
+    </style>
+  </head>
+
+  <body>
+    <!-- Error display overlay -->
+    <div id="error-display" class="debug-overlay">
+      <!-- Error content will be inserted here by JavaScript -->
+    </div>
+    
+    <!-- Debug info overlay -->
+    <div id="debug-info" class="debug-overlay">
+      <h2>🔧 Application Debug Information</h2>
+      <div class="debug-info">
+        <strong>Status:</strong> Application failed to load within the expected time
+      </div>
+      <div class="debug-info">
+        <strong>JavaScript Execution:</strong> ✅ Working (you can see this message)
+      </div>
+      <div class="debug-info">
+        <strong>Current URL:</strong> <span id="current-url"></span>
+      </div>
+      <div class="debug-info">
+        <strong>User Agent:</strong> <span id="user-agent"></span>
+      </div>
+      <div class="debug-info">
+        <strong>Local Storage Available:</strong> <span id="storage-check"></span>
+      </div>
+      <div class="debug-info">
+        <strong>Next Steps:</strong>
+        <ul>
+          <li>Open browser developer tools (F12)</li>
+          <li>Check the Console tab for error messages</li>
+          <li>Look for network errors in the Network tab</li>
+          <li>Try refreshing the page</li>
+        </ul>
+      </div>
+      <button onclick="window.location.reload()" class="error-button primary">
+        Reload Page
+      </button>
+      <button onclick="window.location.href='/diagnostic'" class="error-button warning">
+        Diagnostic Page
+      </button>
+      <button onclick="window.location.href='/login'" class="error-button primary">
+        Login Page
+      </button>
+    </div>
+
+    <div id="root"></div>
+    
+    <script>
+      // Fill in debug information
+      document.getElementById('current-url').textContent = window.location.href;
+      document.getElementById('user-agent').textContent = navigator.userAgent;
+      document.getElementById('storage-check').textContent = typeof(Storage) !== "undefined" ? "✅ Available" : "❌ Not Available";
+    </script>
+    
+    <!-- IMPORTANT: DO NOT REMOVE THIS SCRIPT TAG OR THIS VERY COMMENT! -->
+    <script src="https://cdn.gpteng.co/gptengineer.js" type="module"></script>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

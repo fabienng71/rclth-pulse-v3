@@ -1,0 +1,490 @@
+
+import React, { useState, useEffect, useMemo } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import { 
+  Table, 
+  TableBody, 
+  TableCell, 
+  TableHead, 
+  TableHeader, 
+  TableRow 
+} from '@/components/ui/table';
+import { CleanFragment } from "@/components/ui/clean-fragment";
+import { 
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import { ChevronDown, ChevronRight, Search, Package, Eye, Edit, Trash2, ExpandIcon, ShrinkIcon } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { useAuthStore } from '@/stores/authStore';
+import { fetchEnhancedReturnRequests, ReturnRequestWithItems } from '@/services/enhancedReturnRequestService';
+import { deleteReturnRequest } from '@/components/forms/services/returnRequestService';
+import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
+import { groupRequestsByMonth, filterMonthGroups, toggleMonthExpansion, setAllMonthsExpanded, MonthGroup } from '@/utils/monthGrouping';
+import MonthHeader from './MonthHeader';
+
+interface ReturnRequestWithItemCount extends Omit<ReturnRequestWithItems, 'items'> {
+  item_count: number;
+  full_name?: string;
+}
+
+const EnhancedReturnRequestsCard = () => {
+  const navigate = useNavigate();
+  const { user, isAdmin } = useAuthStore();
+  const { toast } = useToast();
+  const [requests, setRequests] = useState<ReturnRequestWithItemCount[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
+  const [itemDetails, setItemDetails] = useState<Record<string, any[]>>({});
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [deletingRequest, setDeletingRequest] = useState<ReturnRequestWithItemCount | null>(null);
+  const [deleteInProgress, setDeleteInProgress] = useState(false);
+  const [monthGroups, setMonthGroups] = useState<MonthGroup<ReturnRequestWithItemCount>[]>([]);
+
+  const fetchRequests = async () => {
+    try {
+      setLoading(true);
+      const { data, error } = await fetchEnhancedReturnRequests(
+        isAdmin, 
+        user?.id, 
+        searchQuery
+      );
+
+      if (error) {
+        throw error;
+      }
+
+      const requestData = data || [];
+      setRequests(requestData);
+      
+      // Group requests by month
+      const grouped = groupRequestsByMonth(requestData);
+      setMonthGroups(grouped);
+    } catch (error) {
+      console.error('Error fetching return requests:', error);
+      toast({
+        title: "Error",
+        description: "Failed to fetch return requests",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Memoized filtered month groups based on search query
+  const filteredMonthGroups = useMemo(() => {
+    return filterMonthGroups(monthGroups, searchQuery);
+  }, [monthGroups, searchQuery]);
+
+  useEffect(() => {
+    if (user) {
+      fetchRequests();
+    }
+  }, [user, isAdmin]);
+
+  // Month expansion handlers
+  const handleMonthToggle = (monthKey: string) => {
+    setMonthGroups(prev => toggleMonthExpansion(prev, monthKey));
+  };
+
+  const handleExpandAllMonths = () => {
+    setMonthGroups(prev => setAllMonthsExpanded(prev, true));
+  };
+
+  const handleCollapseAllMonths = () => {
+    setMonthGroups(prev => setAllMonthsExpanded(prev, false));
+  };
+
+  const toggleRowExpansion = async (requestId: string) => {
+    const newExpandedRows = new Set(expandedRows);
+    
+    if (expandedRows.has(requestId)) {
+      newExpandedRows.delete(requestId);
+    } else {
+      newExpandedRows.add(requestId);
+      
+      // Fetch item details if not already loaded
+      if (!itemDetails[requestId]) {
+        try {
+          const { data: items, error } = await supabase
+            .from('return_request_items')
+            .select('*')
+            .eq('return_request_id', requestId)
+            .order('created_at', { ascending: true });
+
+          if (error) throw error;
+
+          setItemDetails(prev => ({
+            ...prev,
+            [requestId]: items || []
+          }));
+        } catch (error) {
+          console.error('Error fetching item details:', error);
+          toast({
+            title: "Error",
+            description: "Failed to fetch item details",
+            variant: "destructive",
+          });
+        }
+      }
+    }
+    
+    setExpandedRows(newExpandedRows);
+  };
+
+  const handleView = (id: string) => {
+    navigate(`/forms/return/view/${id}`);
+  };
+
+  const handleEdit = (id: string) => {
+    navigate(`/forms/return/edit/${id}`);
+  };
+
+  const handleDeleteClick = (request: ReturnRequestWithItemCount) => {
+    setDeletingRequest(request);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!deletingRequest || !user) return;
+
+    try {
+      setDeleteInProgress(true);
+      await deleteReturnRequest(deletingRequest.id, user);
+      
+      toast({
+        title: "Success",
+        description: "Return request deleted successfully",
+      });
+      
+      // Refresh the list
+      fetchRequests();
+    } catch (error) {
+      console.error('Error deleting return request:', error);
+      toast({
+        title: "Error",
+        description: typeof error === 'object' && error !== null && 'message' in error 
+          ? `Failed to delete: ${error.message}` 
+          : "Failed to delete return request. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setDeleteInProgress(false);
+      setDeleteDialogOpen(false);
+      setDeletingRequest(null);
+    }
+  };
+
+  const getStatusBadgeClass = (status: string) => {
+    switch (status.toLowerCase()) {
+      case 'draft':
+        return 'bg-gray-100 text-gray-800';
+      case 'sent':
+      case 'pending':
+        return 'bg-yellow-100 text-yellow-800';
+      case 'approved':
+        return 'bg-green-100 text-green-800';
+      case 'rejected':
+        return 'bg-red-100 text-red-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  const getPriorityBadgeClass = (priority: string) => {
+    switch (priority.toLowerCase()) {
+      case 'high':
+        return 'bg-red-100 text-red-800';
+      case 'medium':
+        return 'bg-yellow-100 text-yellow-800';
+      case 'low':
+        return 'bg-green-100 text-green-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString();
+  };
+
+  if (loading) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Return Requests</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex justify-center items-center py-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <>
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <CardTitle className="flex items-center gap-2">
+              <Package className="h-5 w-5" />
+              Return Requests
+            </CardTitle>
+            <Badge variant="secondary">{requests.length} total</Badge>
+          </div>
+          
+          <div className="flex items-center justify-between space-x-4">
+            <div className="flex items-center space-x-2">
+              <Search className="h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search by customer name..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="max-w-sm"
+              />
+            </div>
+            
+            {/* Bulk month controls */}
+            <div className="flex items-center space-x-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleExpandAllMonths}
+                className="text-xs"
+              >
+                <ExpandIcon className="h-3 w-3 mr-1" />
+                Expand All
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleCollapseAllMonths}
+                className="text-xs"
+              >
+                <ShrinkIcon className="h-3 w-3 mr-1" />
+                Collapse All
+              </Button>
+            </div>
+          </div>
+        </CardHeader>
+        
+        <CardContent>
+          {filteredMonthGroups.length === 0 ? (
+            <div className="text-center py-8">
+              <Package className="h-12 w-12 mx-auto text-muted-foreground mb-2" />
+              <p className="text-muted-foreground">
+                {searchQuery ? 'No return requests found matching your search' : 'No return requests found'}
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {filteredMonthGroups.map((monthGroup) => (
+                <div key={monthGroup.monthKey} className="border rounded-lg overflow-hidden">
+                  <MonthHeader
+                    monthGroup={monthGroup}
+                    onToggleExpansion={handleMonthToggle}
+                  />
+                  
+                  {monthGroup.isExpanded && (
+                    <div className="overflow-x-auto">
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead className="w-8"></TableHead>
+                            <TableHead>Customer</TableHead>
+                            <TableHead>Items</TableHead>
+                            <TableHead>Return Date</TableHead>
+                            <TableHead>Priority</TableHead>
+                            <TableHead>Status</TableHead>
+                            <TableHead>Created By</TableHead>
+                            <TableHead>Created</TableHead>
+                            <TableHead className="w-32">Actions</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {monthGroup.requests.map((request) => (
+                            <CleanFragment fragmentKey={request.id}>
+                              <TableRow className="cursor-pointer hover:bg-muted/50">
+                                <TableCell>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => toggleRowExpansion(request.id)}
+                                  >
+                                    {expandedRows.has(request.id) ? (
+                                      <ChevronDown className="h-4 w-4" />
+                                    ) : (
+                                      <ChevronRight className="h-4 w-4" />
+                                    )}
+                                  </Button>
+                                </TableCell>
+                                <TableCell>
+                                  <div>
+                                    <div className="font-medium">
+                                      {request.customers?.customer_name || request.customer_code}
+                                    </div>
+                                    {request.customers?.search_name && (
+                                      <div className="text-sm text-muted-foreground">
+                                        {request.customers.search_name}
+                                      </div>
+                                    )}
+                                  </div>
+                                </TableCell>
+                                <TableCell>
+                                  <Badge variant="outline">
+                                    {request.item_count} item{request.item_count !== 1 ? 's' : ''}
+                                  </Badge>
+                                </TableCell>
+                                <TableCell>{formatDate(request.return_date)}</TableCell>
+                                <TableCell>
+                                  <Badge className={getPriorityBadgeClass(request.priority)}>
+                                    {request.priority}
+                                  </Badge>
+                                </TableCell>
+                                <TableCell>
+                                  <Badge className={getStatusBadgeClass(request.status)}>
+                                    {request.status}
+                                  </Badge>
+                                </TableCell>
+                                <TableCell>{request.full_name || 'Unknown'}</TableCell>
+                                <TableCell>{formatDate(request.created_at)}</TableCell>
+                                <TableCell>
+                                  <div className="flex items-center gap-1">
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() => handleView(request.id)}
+                                    >
+                                      <Eye className="h-4 w-4" />
+                                    </Button>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() => handleEdit(request.id)}
+                                    >
+                                      <Edit className="h-4 w-4" />
+                                    </Button>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() => handleDeleteClick(request)}
+                                    >
+                                      <Trash2 className="h-4 w-4" />
+                                    </Button>
+                                  </div>
+                                </TableCell>
+                              </TableRow>
+                              
+                              {expandedRows.has(request.id) && (
+                                <TableRow>
+                                  <TableCell colSpan={9} className="bg-muted/30 p-4">
+                                    <div className="space-y-4">
+                                      {/* Request Details */}
+                                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div>
+                                          <h4 className="font-medium mb-2">Request Details</h4>
+                                          <div className="space-y-1 text-sm">
+                                            <div><strong>Customer Code:</strong> {request.customer_code}</div>
+                                            <div><strong>Return Date:</strong> {formatDate(request.return_date)}</div>
+                                            <div><strong>Priority:</strong> {request.priority}</div>
+                                          </div>
+                                        </div>
+                                        
+                                        {request.notes && (
+                                          <div>
+                                            <h4 className="font-medium mb-2">Notes</h4>
+                                            <p className="text-sm text-muted-foreground">{request.notes}</p>
+                                          </div>
+                                        )}
+                                      </div>
+                                      
+                                      {/* Items List */}
+                                      <div>
+                                        <h4 className="font-medium mb-2">Items to Return</h4>
+                                        {itemDetails[request.id] ? (
+                                          <div className="border rounded-lg overflow-hidden">
+                                            <Table>
+                                              <TableHeader>
+                                                <TableRow>
+                                                  <TableHead>Item Code</TableHead>
+                                                  <TableHead>Description</TableHead>
+                                                  <TableHead>Quantity</TableHead>
+                                                  <TableHead>Unit</TableHead>
+                                                  <TableHead>Reason</TableHead>
+                                                </TableRow>
+                                              </TableHeader>
+                                              <TableBody>
+                                                {itemDetails[request.id].map((item: any) => (
+                                                  <TableRow key={item.id}>
+                                                    <TableCell className="font-mono text-sm">{item.item_code}</TableCell>
+                                                    <TableCell>{item.description}</TableCell>
+                                                    <TableCell>{item.quantity}</TableCell>
+                                                    <TableCell>{item.unit || '-'}</TableCell>
+                                                    <TableCell>{item.reason}</TableCell>
+                                                  </TableRow>
+                                                ))}
+                                              </TableBody>
+                                            </Table>
+                                          </div>
+                                        ) : (
+                                          <div className="flex justify-center py-4">
+                                            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+                                          </div>
+                                        )}
+                                      </div>
+                                    </div>
+                                  </TableCell>
+                                </TableRow>
+                              )}
+                            </CleanFragment>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Return Request</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this return request? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleteInProgress}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteConfirm}
+              disabled={deleteInProgress}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {deleteInProgress ? 'Deleting...' : 'Delete'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
+  );
+};
+
+export default EnhancedReturnRequestsCard;

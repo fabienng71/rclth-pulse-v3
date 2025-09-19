@@ -1,0 +1,524 @@
+/* PDF-specific styles */
+@import './styles/pdf.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Add custom CSS variables for our color scheme */
+@layer base {
+  /* Import fonts with explicit Unicode subsets for special characters */
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap&subset=latin,latin-ext');
+  
+  /* Load Noto Sans as primary Unicode fallback with comprehensive character support */
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700&display=swap&subset=latin,latin-ext');
+  
+  /* Preload critical font with degree symbol and other special chars */
+  @font-face {
+    font-family: 'Inter-Unicode';
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap;
+    src: local('Inter'), url('https://fonts.gstatic.com/s/inter/v12/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuLyeMZhrib2Bg-4.woff2') format('woff2');
+    unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD, U+00B0, U+00E0-00FF;
+  }
+  
+  /* Base font and encoding settings for Unicode support */
+  * {
+    font-feature-settings: "liga" 1, "calt" 1, "kern" 1;
+    -webkit-font-feature-settings: "liga" 1, "calt" 1, "kern" 1;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    unicode-bidi: embed;
+    direction: ltr;
+  }
+  
+  body {
+    font-family: "Inter-Unicode", "Inter", "Noto Sans", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+                 "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif,
+                 "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+    font-variant-ligatures: common-ligatures;
+    font-variant-numeric: tabular-nums;
+    font-synthesis: weight style;
+  }
+  
+  /* Explicit Unicode character support */
+  .unicode-text {
+    font-synthesis: weight style;
+    font-optical-sizing: auto;
+    font-variant-position: normal;
+    text-transform: none !important;
+    white-space: pre-wrap;
+  }
+  
+  /* Ensure table cells handle Unicode properly */
+  td, th {
+    text-overflow: clip;
+    word-break: normal;
+    overflow-wrap: anywhere;
+  }
+
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 224 71.4% 4.1%;
+    --card: 0 0% 100%;
+    --card-foreground: 224 71.4% 4.1%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 224 71.4% 4.1%;
+    --primary: 0 90% 45%; /* Default red theme */
+    --primary-foreground: 210 20% 98%;
+    --secondary: 220 14.3% 95.9%;
+    --secondary-foreground: 220.9 39.3% 11%;
+    --muted: 220 14.3% 95.9%;
+    --muted-foreground: 220 8.9% 46.1%;
+    --accent: 220 14.3% 95.9%;
+    --accent-foreground: 220.9 39.3% 11%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 20% 98%;
+    --border: 220 13% 91%;
+    --input: 220 13% 91%;
+    --ring: 0 90% 45%;
+    --radius: 0.5rem;
+    
+    /* Enhanced background system */
+    --background-primary: 0 0% 100%;
+    --background-secondary: 220 14% 98%;
+    --background-tertiary: 220 9% 96%;
+    --background-accent: 0 100% 99%;
+    --background-container: 220 20% 99%;
+    --background-gradient: linear-gradient(135deg, hsl(0 0% 100%) 0%, hsl(220 14% 99%) 100%);
+    
+    /* Custom soft colors for summary cards */
+    --soft-purple: 252 100% 94%;
+    --soft-blue: 213 94% 95%;
+    --soft-green: 120 73% 95%;
+    --soft-orange: 35 100% 95%;
+    --soft-gray: 240 5% 96%;
+
+    /* Crimson color palette */
+    --color-crimson-50: 355 100% 97%;
+    --color-crimson-100: 354 100% 94%;
+    --color-crimson-200: 351 100% 89%;
+    --color-crimson-300: 347 100% 80%;
+    --color-crimson-400: 342 100% 69%;
+    --color-crimson-500: 336 100% 59%;
+    --color-crimson-600: 335 93% 49%;
+    --color-crimson-700: 334 89% 41%;
+    --color-crimson-800: 332 81% 34%;
+    --color-crimson-900: 331 78% 29%;
+    --color-crimson-950: 329 87% 20%;
+
+    /* Wedgewood color palette */
+    --color-wedgewood-50: 214 61% 96%;
+    --color-wedgewood-100: 215 60% 93%;
+    --color-wedgewood-200: 212 45% 86%;
+    --color-wedgewood-300: 209 33% 75%;
+    --color-wedgewood-400: 207 25% 59%;
+    --color-wedgewood-500: 207 33% 47%;
+    --color-wedgewood-600: 209 39% 38%;
+    --color-wedgewood-700: 210 36% 31%;
+    --color-wedgewood-800: 210 30% 27%;
+    --color-wedgewood-900: 210 24% 24%;
+    --color-wedgewood-950: 215 30% 16%;
+
+    /* Eucalyptus color palette */
+    --color-eucalyptus-50: 156 71% 95%;
+    --color-eucalyptus-100: 153 60% 90%;
+    --color-eucalyptus-200: 151 50% 81%;
+    --color-eucalyptus-300: 150 42% 70%;
+    --color-eucalyptus-400: 150 46% 57%;
+    --color-eucalyptus-500: 150 62% 47%;
+    --color-eucalyptus-600: 158 67% 41%;
+    --color-eucalyptus-700: 159 70% 33%;
+    --color-eucalyptus-800: 161 68% 26%;
+    --color-eucalyptus-900: 161 67% 21%;
+    --color-eucalyptus-950: 165 86% 13%;
+
+    /* Retro color palette */
+    --color-retro-50: 50 29% 97%;
+    --color-retro-100: 50 29% 93%;
+    --color-retro-200: 45 25% 85%;
+    --color-retro-300: 42 23% 75%;
+    --color-retro-400: 39 23% 65%;
+    --color-retro-500: 151 8% 53%;
+    --color-retro-600: 151 8% 45%;
+    --color-retro-700: 151 8% 37%;
+    --color-retro-800: 63 22% 28%;
+    --color-retro-900: 63 22% 22%;
+    --color-retro-950: 63 22% 20%;
+
+    /* Enhanced design system variables */
+    --shadow-soft: 0 2px 8px rgba(0, 0, 0, 0.04);
+    --shadow-medium: 0 4px 16px rgba(0, 0, 0, 0.08);
+    --shadow-strong: 0 8px 32px rgba(0, 0, 0, 0.12);
+    --gradient-primary: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--primary) / 0.8) 100%);
+    --transition-smooth: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .dark {
+    --background: 224 71.4% 4.1%;
+    --foreground: 210 20% 98%;
+    --card: 224 71.4% 4.1%;
+    --card-foreground: 210 20% 98%;
+    --popover: 224 71.4% 4.1%;
+    --popover-foreground: 210 20% 98%;
+    --primary: 0 90% 40%;
+    --primary-foreground: 210 20% 98%;
+    --secondary: 215 27.9% 16.9%;
+    --secondary-foreground: 210 20% 98%;
+    --muted: 215 27.9% 16.9%;
+    --muted-foreground: 217.9 10.6% 64.9%;
+    --accent: 215 27.9% 16.9%;
+    --accent-foreground: 210 20% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 20% 98%;
+    --border: 215 27.9% 16.9%;
+    --input: 215 27.9% 16.9%;
+    --ring: 0 90% 40%;
+    
+    /* Enhanced background system - dark mode */
+    --background-primary: 224 71.4% 4.1%;
+    --background-secondary: 215 28% 6%;
+    --background-tertiary: 215 25% 8%;
+    --background-accent: 0 90% 6%;
+    --background-container: 215 30% 7%;
+    --background-gradient: linear-gradient(135deg, hsl(224 71.4% 4.1%) 0%, hsl(215 28% 5%) 100%);
+    
+    /* Custom soft colors for dark mode */
+    --soft-purple: 252 30% 25%;
+    --soft-blue: 213 30% 25%;
+    --soft-green: 120 30% 25%;
+    --soft-orange: 35 30% 25%;
+    --soft-gray: 240 10% 20%;
+
+    /* Enhanced shadows for dark mode */
+    --shadow-soft: 0 2px 8px rgba(0, 0, 0, 0.2);
+    --shadow-medium: 0 4px 16px rgba(0, 0, 0, 0.3);
+    --shadow-strong: 0 8px 32px rgba(0, 0, 0, 0.4);
+  }
+
+  /* Crimson theme variants */
+  [data-theme="crimson"] {
+    --primary: var(--color-crimson-600);
+    --ring: var(--color-crimson-600);
+    --soft-primary: var(--color-crimson-50);
+    --background-primary: 355 100% 99.5%;
+    --background-secondary: var(--color-crimson-50);
+    --background-tertiary: 354 100% 96%;
+    --background-accent: var(--color-crimson-100);
+    --background-container: 355 100% 98.5%;
+    --background-gradient: linear-gradient(135deg, hsl(355 100% 99.5%) 0%, hsl(var(--color-crimson-50)) 100%);
+  }
+
+  [data-theme="crimson"].dark {
+    --primary: var(--color-crimson-500);
+    --ring: var(--color-crimson-500);
+    --soft-primary: var(--color-crimson-950);
+    --background-primary: 329 87% 15%;
+    --background-secondary: var(--color-crimson-950);
+    --background-tertiary: 331 78% 20%;
+    --background-accent: var(--color-crimson-900);
+    --background-container: 329 87% 12%;
+    --background-gradient: linear-gradient(135deg, hsl(329 87% 15%) 0%, hsl(var(--color-crimson-950)) 100%);
+  }
+
+  /* Wedgewood theme variants */
+  [data-theme="wedgewood"] {
+    --primary: var(--color-wedgewood-500);
+    --ring: var(--color-wedgewood-500);
+    --soft-primary: var(--color-wedgewood-50);
+    --background-primary: 214 61% 99%;
+    --background-secondary: var(--color-wedgewood-50);
+    --background-tertiary: 215 60% 95%;
+    --background-accent: var(--color-wedgewood-100);
+    --background-container: 214 61% 97.5%;
+    --background-gradient: linear-gradient(135deg, hsl(214 61% 99%) 0%, hsl(var(--color-wedgewood-50)) 100%);
+  }
+
+  [data-theme="wedgewood"].dark {
+    --primary: var(--color-wedgewood-400);
+    --ring: var(--color-wedgewood-400);
+    --soft-primary: var(--color-wedgewood-950);
+    --background-primary: 215 30% 12%;
+    --background-secondary: var(--color-wedgewood-950);
+    --background-tertiary: 210 24% 18%;
+    --background-accent: var(--color-wedgewood-900);
+    --background-container: 215 30% 10%;
+    --background-gradient: linear-gradient(135deg, hsl(215 30% 12%) 0%, hsl(var(--color-wedgewood-950)) 100%);
+  }
+
+  /* Eucalyptus theme variants */
+  [data-theme="eucalyptus"] {
+    --primary: var(--color-eucalyptus-500);
+    --ring: var(--color-eucalyptus-500);
+    --soft-primary: var(--color-eucalyptus-50);
+    --background-primary: 156 71% 99%;
+    --background-secondary: var(--color-eucalyptus-50);
+    --background-tertiary: 153 60% 94%;
+    --background-accent: var(--color-eucalyptus-100);
+    --background-container: 156 71% 97.5%;
+    --background-gradient: linear-gradient(135deg, hsl(156 71% 99%) 0%, hsl(var(--color-eucalyptus-50)) 100%);
+  }
+
+  [data-theme="eucalyptus"].dark {
+    --primary: var(--color-eucalyptus-400);
+    --ring: var(--color-eucalyptus-400);
+    --soft-primary: var(--color-eucalyptus-950);
+    --background-primary: 165 86% 12%;
+    --background-secondary: var(--color-eucalyptus-950);
+    --background-tertiary: 161 67% 16%;
+    --background-accent: var(--color-eucalyptus-900);
+    --background-container: 165 86% 10%;
+    --background-gradient: linear-gradient(135deg, hsl(165 86% 12%) 0%, hsl(var(--color-eucalyptus-950)) 100%);
+  }
+
+  /* Retro theme variants */
+  [data-theme="retro"] {
+    --primary: var(--color-retro-500);
+    --ring: var(--color-retro-500);
+    --soft-primary: var(--color-retro-50);
+    --background-primary: 50 29% 99%;
+    --background-secondary: var(--color-retro-50);
+    --background-tertiary: 50 29% 95%;
+    --background-accent: var(--color-retro-100);
+    --background-container: 50 29% 97.5%;
+    --background-gradient: linear-gradient(135deg, hsl(50 29% 99%) 0%, hsl(var(--color-retro-50)) 100%);
+  }
+
+  [data-theme="retro"].dark {
+    --primary: var(--color-retro-400);
+    --ring: var(--color-retro-400);
+    --soft-primary: var(--color-retro-950);
+    --background-primary: 63 22% 15%;
+    --background-secondary: var(--color-retro-950);
+    --background-tertiary: 63 22% 18%;
+    --background-accent: var(--color-retro-900);
+    --background-container: 63 22% 12%;
+    --background-gradient: linear-gradient(135deg, hsl(63 22% 15%) 0%, hsl(var(--color-retro-950)) 100%);
+  }
+}
+
+@layer utilities {
+  .bg-soft-purple {
+    background-color: hsl(var(--soft-purple));
+  }
+  .bg-soft-blue {
+    background-color: hsl(var(--soft-blue));
+  }
+  .bg-soft-green {
+    background-color: hsl(var(--soft-green));
+  }
+  .bg-soft-orange {
+    background-color: hsl(var(--soft-orange));
+  }
+  .bg-soft-gray {
+    background-color: hsl(var(--soft-gray));
+  }
+  .bg-soft-primary {
+    background-color: hsl(var(--soft-primary));
+  }
+
+  /* Enhanced background utilities */
+  .bg-background-primary {
+    background-color: hsl(var(--background-primary));
+  }
+  .bg-background-secondary {
+    background-color: hsl(var(--background-secondary));
+  }
+  .bg-background-tertiary {
+    background-color: hsl(var(--background-tertiary));
+  }
+  .bg-background-accent {
+    background-color: hsl(var(--background-accent));
+  }
+  .bg-background-container {
+    background-color: hsl(var(--background-container));
+  }
+  .bg-background-gradient {
+    background: var(--background-gradient);
+  }
+
+  /* Crimson utility classes */
+  .bg-crimson-50 { background-color: hsl(var(--color-crimson-50)); }
+  .bg-crimson-100 { background-color: hsl(var(--color-crimson-100)); }
+  .bg-crimson-200 { background-color: hsl(var(--color-crimson-200)); }
+  .bg-crimson-300 { background-color: hsl(var(--color-crimson-300)); }
+  .bg-crimson-400 { background-color: hsl(var(--color-crimson-400)); }
+  .bg-crimson-500 { background-color: hsl(var(--color-crimson-500)); }
+  .bg-crimson-600 { background-color: hsl(var(--color-crimson-600)); }
+  .bg-crimson-700 { background-color: hsl(var(--color-crimson-700)); }
+  .bg-crimson-800 { background-color: hsl(var(--color-crimson-800)); }
+  .bg-crimson-900 { background-color: hsl(var(--color-crimson-900)); }
+  .bg-crimson-950 { background-color: hsl(var(--color-crimson-950)); }
+
+  .text-crimson-50 { color: hsl(var(--color-crimson-50)); }
+  .text-crimson-100 { color: hsl(var(--color-crimson-100)); }
+  .text-crimson-200 { color: hsl(var(--color-crimson-200)); }
+  .text-crimson-300 { color: hsl(var(--color-crimson-300)); }
+  .text-crimson-400 { color: hsl(var(--color-crimson-400)); }
+  .text-crimson-500 { color: hsl(var(--color-crimson-500)); }
+  .text-crimson-600 { color: hsl(var(--color-crimson-600)); }
+  .text-crimson-700 { color: hsl(var(--color-crimson-700)); }
+  .text-crimson-800 { color: hsl(var(--color-crimson-800)); }
+  .text-crimson-900 { color: hsl(var(--color-crimson-900)); }
+  .text-crimson-950 { color: hsl(var(--color-crimson-950)); }
+
+  .border-crimson-50 { border-color: hsl(var(--color-crimson-50)); }
+  .border-crimson-100 { border-color: hsl(var(--color-crimson-100)); }
+  .border-crimson-200 { border-color: hsl(var(--color-crimson-200)); }
+  .border-crimson-300 { border-color: hsl(var(--color-crimson-300)); }
+  .border-crimson-400 { border-color: hsl(var(--color-crimson-400)); }
+  .border-crimson-500 { border-color: hsl(var(--color-crimson-500)); }
+  .border-crimson-600 { border-color: hsl(var(--color-crimson-600)); }
+
+  /* Wedgewood utility classes */
+  .bg-wedgewood-50 { background-color: hsl(var(--color-wedgewood-50)); }
+  .bg-wedgewood-100 { background-color: hsl(var(--color-wedgewood-100)); }
+  .bg-wedgewood-200 { background-color: hsl(var(--color-wedgewood-200)); }
+  .bg-wedgewood-300 { background-color: hsl(var(--color-wedgewood-300)); }
+  .bg-wedgewood-400 { background-color: hsl(var(--color-wedgewood-400)); }
+  .bg-wedgewood-500 { background-color: hsl(var(--color-wedgewood-500)); }
+  .bg-wedgewood-600 { background-color: hsl(var(--color-wedgewood-600)); }
+  .bg-wedgewood-700 { background-color: hsl(var(--color-wedgewood-700)); }
+  .bg-wedgewood-800 { background-color: hsl(var(--color-wedgewood-800)); }
+  .bg-wedgewood-900 { background-color: hsl(var(--color-wedgewood-900)); }
+  .bg-wedgewood-950 { background-color: hsl(var(--color-wedgewood-950)); }
+
+  .text-wedgewood-50 { color: hsl(var(--color-wedgewood-50)); }
+  .text-wedgewood-100 { color: hsl(var(--color-wedgewood-100)); }
+  .text-wedgewood-200 { color: hsl(var(--color-wedgewood-200)); }
+  .text-wedgewood-300 { color: hsl(var(--color-wedgewood-300)); }
+  .text-wedgewood-400 { color: hsl(var(--color-wedgewood-400)); }
+  .text-wedgewood-500 { color: hsl(var(--color-wedgewood-500)); }
+  .text-wedgewood-600 { color: hsl(var(--color-wedgewood-600)); }
+  .text-wedgewood-700 { color: hsl(var(--color-wedgewood-700)); }
+  .text-wedgewood-800 { color: hsl(var(--color-wedgewood-800)); }
+  .text-wedgewood-900 { color: hsl(var(--color-wedgewood-900)); }
+  .text-wedgewood-950 { color: hsl(var(--color-wedgewood-950)); }
+
+  .border-wedgewood-50 { border-color: hsl(var(--color-wedgewood-50)); }
+  .border-wedgewood-100 { border-color: hsl(var(--color-wedgewood-100)); }
+  .border-wedgewood-200 { border-color: hsl(var(--color-wedgewood-200)); }
+  .border-wedgewood-300 { border-color: hsl(var(--color-wedgewood-300)); }
+  .border-wedgewood-400 { border-color: hsl(var(--color-wedgewood-400)); }
+  .border-wedgewood-500 { border-color: hsl(var(--color-wedgewood-500)); }
+  .border-wedgewood-600 { border-color: hsl(var(--color-wedgewood-600)); }
+
+  /* Eucalyptus utility classes */
+  .bg-eucalyptus-50 { background-color: hsl(var(--color-eucalyptus-50)); }
+  .bg-eucalyptus-100 { background-color: hsl(var(--color-eucalyptus-100)); }
+  .bg-eucalyptus-200 { background-color: hsl(var(--color-eucalyptus-200)); }
+  .bg-eucalyptus-300 { background-color: hsl(var(--color-eucalyptus-300)); }
+  .bg-eucalyptus-400 { background-color: hsl(var(--color-eucalyptus-400)); }
+  .bg-eucalyptus-500 { background-color: hsl(var(--color-eucalyptus-500)); }
+  .bg-eucalyptus-600 { background-color: hsl(var(--color-eucalyptus-600)); }
+  .bg-eucalyptus-700 { background-color: hsl(var(--color-eucalyptus-700)); }
+  .bg-eucalyptus-800 { background-color: hsl(var(--color-eucalyptus-800)); }
+  .bg-eucalyptus-900 { background-color: hsl(var(--color-eucalyptus-900)); }
+  .bg-eucalyptus-950 { background-color: hsl(var(--color-eucalyptus-950)); }
+
+  .text-eucalyptus-50 { color: hsl(var(--color-eucalyptus-50)); }
+  .text-eucalyptus-100 { color: hsl(var(--color-eucalyptus-100)); }
+  .text-eucalyptus-200 { color: hsl(var(--color-eucalyptus-200)); }
+  .text-eucalyptus-300 { color: hsl(var(--color-eucalyptus-300)); }
+  .text-eucalyptus-400 { color: hsl(var(--color-eucalyptus-400)); }
+  .text-eucalyptus-500 { color: hsl(var(--color-eucalyptus-500)); }
+  .text-eucalyptus-600 { color: hsl(var(--color-eucalyptus-600)); }
+  .text-eucalyptus-700 { color: hsl(var(--color-eucalyptus-700)); }
+  .text-eucalyptus-800 { color: hsl(var(--color-eucalyptus-800)); }
+  .text-eucalyptus-900 { color: hsl(var(--color-eucalyptus-900)); }
+  .text-eucalyptus-950 { color: hsl(var(--color-eucalyptus-950)); }
+
+  .border-eucalyptus-50 { border-color: hsl(var(--color-eucalyptus-50)); }
+  .border-eucalyptus-100 { border-color: hsl(var(--color-eucalyptus-100)); }
+  .border-eucalyptus-200 { border-color: hsl(var(--color-eucalyptus-200)); }
+  .border-eucalyptus-300 { border-color: hsl(var(--color-eucalyptus-300)); }
+  .border-eucalyptus-400 { border-color: hsl(var(--color-eucalyptus-400)); }
+  .border-eucalyptus-500 { border-color: hsl(var(--color-eucalyptus-500)); }
+  .border-eucalyptus-600 { border-color: hsl(var(--color-eucalyptus-600)); }
+
+  /* Retro utility classes */
+  .bg-retro-50 { background-color: hsl(var(--color-retro-50)); }
+  .bg-retro-100 { background-color: hsl(var(--color-retro-100)); }
+  .bg-retro-200 { background-color: hsl(var(--color-retro-200)); }
+  .bg-retro-300 { background-color: hsl(var(--color-retro-300)); }
+  .bg-retro-400 { background-color: hsl(var(--color-retro-400)); }
+  .bg-retro-500 { background-color: hsl(var(--color-retro-500)); }
+  .bg-retro-600 { background-color: hsl(var(--color-retro-600)); }
+  .bg-retro-700 { background-color: hsl(var(--color-retro-700)); }
+  .bg-retro-800 { background-color: hsl(var(--color-retro-800)); }
+  .bg-retro-900 { background-color: hsl(var(--color-retro-900)); }
+  .bg-retro-950 { background-color: hsl(var(--color-retro-950)); }
+
+  .text-retro-50 { color: hsl(var(--color-retro-50)); }
+  .text-retro-100 { color: hsl(var(--color-retro-100)); }
+  .text-retro-200 { color: hsl(var(--color-retro-200)); }
+  .text-retro-300 { color: hsl(var(--color-retro-300)); }
+  .text-retro-400 { color: hsl(var(--color-retro-400)); }
+  .text-retro-500 { color: hsl(var(--color-retro-500)); }
+  .text-retro-600 { color: hsl(var(--color-retro-600)); }
+  .text-retro-700 { color: hsl(var(--color-retro-700)); }
+  .text-retro-800 { color: hsl(var(--color-retro-800)); }
+  .text-retro-900 { color: hsl(var(--color-retro-900)); }
+  .text-retro-950 { color: hsl(var(--color-retro-950)); }
+
+  .border-retro-50 { border-color: hsl(var(--color-retro-50)); }
+  .border-retro-100 { border-color: hsl(var(--color-retro-100)); }
+  .border-retro-200 { border-color: hsl(var(--color-retro-200)); }
+  .border-retro-300 { border-color: hsl(var(--color-retro-300)); }
+  .border-retro-400 { border-color: hsl(var(--color-retro-400)); }
+  .border-retro-500 { border-color: hsl(var(--color-retro-500)); }
+  .border-retro-600 { border-color: hsl(var(--color-retro-600)); }
+
+  /* Enhanced design utilities */
+  .shadow-soft { box-shadow: var(--shadow-soft); }
+  .shadow-medium { box-shadow: var(--shadow-medium); }
+  .shadow-strong { box-shadow: var(--shadow-strong); }
+  .transition-smooth { transition: var(--transition-smooth); }
+  
+  .gradient-primary {
+    background: var(--gradient-primary);
+  }
+
+  /* Enhanced card styles */
+  .card-enhanced {
+    @apply bg-card border border-border/50 rounded-lg shadow-soft transition-smooth hover:shadow-medium;
+  }
+
+  .card-enhanced-bg {
+    @apply bg-background-secondary border border-border/30 rounded-lg shadow-soft transition-smooth hover:shadow-medium hover:bg-background-tertiary;
+  }
+
+  .card-crimson {
+    @apply bg-soft-primary border border-crimson-200 rounded-lg shadow-soft transition-smooth hover:shadow-medium hover:border-crimson-300;
+  }
+
+  .card-wedgewood {
+    @apply bg-soft-primary border border-wedgewood-200 rounded-lg shadow-soft transition-smooth hover:shadow-medium hover:border-wedgewood-300;
+  }
+
+  /* App background with theme support */
+  .app-background {
+    @apply bg-background-gradient min-h-screen transition-smooth;
+  }
+
+  .section-background {
+    @apply bg-background-secondary/50 backdrop-blur-sm rounded-lg border border-border/30;
+  }
+
+  .panel-background {
+    @apply bg-background-tertiary/80 backdrop-blur-sm rounded-md border border-border/20;
+  }
+}
+
+/* Enhanced component styles */
+@layer components {
+  .btn-primary-enhanced {
+    @apply bg-primary hover:bg-primary/90 text-primary-foreground font-medium px-4 py-2 rounded-md transition-smooth shadow-soft hover:shadow-medium;
+  }
+
+  .input-enhanced {
+    @apply border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 rounded-md transition-smooth;
+  }
+}

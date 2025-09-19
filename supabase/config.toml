@@ -1,0 +1,14 @@
+
+project_id = "cgvjcsevidvxabtwdkdv"
+
+[db]
+major_version = 15
+
+[functions.business-lead-research]
+verify_jwt = true
+
+[functions.perplexity-lead-research]
+verify_jwt = true
+
+[functions.menu-research]
+verify_jwt = true
